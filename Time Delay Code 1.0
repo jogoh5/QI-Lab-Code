@@ -1,0 +1,46 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Load the data
+file_path = 'timedelay1.tmp.csv'  # Replace with your file path
+data = pd.read_csv(file_path)
+
+# Convert delays to numeric seconds
+def convert_to_seconds(value):
+    if value.endswith('n'):  # nano (10^-9 seconds)
+        return float(value[:-1]) * 1e-9
+    elif value.endswith('p'):  # pico (10^-12 seconds)
+        return float(value[:-1]) * 1e-12
+    elif value.endswith('u'):  # micro (10^-6 seconds)
+        return float(value[:-1]) * 1e-6
+    elif value.endswith('m'):  # milli (10^-3 seconds)
+        return float(value[:-1]) * 1e-3
+    else:  # assume it's already in seconds
+        return float(value)
+
+data['Delay (Seconds) - Plot 0'] = data['Delay (Seconds) - Plot 0'].apply(convert_to_seconds)
+
+# Rename columns for simplicity
+data.columns = ['Delay_Seconds', 'g2']
+
+# Normalize the g2 values
+data['g2_normalized'] = (data['g2'] - data['g2'].min()) / (data['g2'].max() - data['g2'].min())
+
+# Merge bins: average values over every 10 consecutive rows
+bin_size = 10
+data['bin'] = np.floor(data.index / bin_size)
+merged_data = data.groupby('bin').agg({
+    'Delay_Seconds': 'mean',  # Average delay for the bin
+    'g2_normalized': 'mean'   # Average normalized g2 for the bin
+}).reset_index()
+
+# Plot the data
+plt.figure(figsize=(10, 6))
+plt.plot(merged_data['Delay_Seconds'], merged_data['g2_normalized'], marker='o', linestyle='-', label='Normalized g2')
+plt.title('Normalized g2 vs. Delay')
+plt.xlabel('Delay (Seconds)')
+plt.ylabel('Normalized g2')
+plt.grid(True)
+plt.legend()
+plt.show()
