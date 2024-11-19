@@ -25,22 +25,28 @@ data['Delay (Seconds) - Plot 0'] = data['Delay (Seconds) - Plot 0'].apply(conver
 data.columns = ['Delay_Seconds', 'g2']
 
 # Normalize the g2 values
-data['g2_normalized'] = (data['g2'] - data['g2'].min()) / (data['g2'].max() - data['g2'].min())
+#data['g2_normalized'] = (data['g2'] - data['g2'].min()) / (data['g2'].max() - data['g2'].min())
 
 # Merge bins: average values over every 10 consecutive rows
-bin_size = 10
+bin_size = 2
 data['bin'] = np.floor(data.index / bin_size)
 merged_data = data.groupby('bin').agg({
     'Delay_Seconds': 'mean',  # Average delay for the bin
-    'g2_normalized': 'mean'   # Average normalized g2 for the bin
+    'g2': 'mean'   # Average normalized g2 for the bin
 }).reset_index()
 
+normalized_g2 = merged_data['g2']/32.48587
 # Plot the data
 plt.figure(figsize=(10, 6))
-plt.plot(merged_data['Delay_Seconds'], merged_data['g2_normalized'], marker='o', linestyle='-', label='Normalized g2')
+plt.plot(merged_data['Delay_Seconds'], normalized_g2, marker='o', linestyle='-', label='Normalized g2')
 plt.title('Normalized g2 vs. Delay')
 plt.xlabel('Delay (Seconds)')
 plt.ylabel('Normalized g2')
+plt.xlim(-3e-8, 3e-8)
 plt.grid(True)
 plt.legend()
+plt.savefig("Normalized g2 vs Time Delay")
 plt.show()
+
+
+
